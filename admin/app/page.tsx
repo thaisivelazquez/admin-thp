@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase/client'
+import './styling.css'
 
 type Tab = 'dashboard' | 'profiles' | 'images' | 'captions'
 
@@ -14,7 +15,6 @@ export default function Page() {
   const [images, setImages] = useState<any[]>([])
   const [captions, setCaptions] = useState<any[]>([])
 
-  // Dashboard stats
   const [topCaption, setTopCaption] = useState<any>(null)
   const [avgLikes, setAvgLikes] = useState<number | null>(null)
 
@@ -43,7 +43,6 @@ export default function Page() {
   }
 
   const fetchDashboardStats = async () => {
-    // Most liked caption + image pair
     const { data: topData } = await supabase
       .from('captions')
       .select('*, images(url, image_description)')
@@ -53,10 +52,7 @@ export default function Page() {
 
     if (topData) setTopCaption(topData)
 
-    // Average likes across all captions
-    const { data: avgData } = await supabase
-      .from('captions')
-      .select('like_count')
+    const { data: avgData } = await supabase.from('captions').select('like_count')
 
     if (avgData && avgData.length > 0) {
       const total = avgData.reduce((sum: number, c: any) => sum + (c.like_count ?? 0), 0)
@@ -127,8 +123,8 @@ export default function Page() {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { prompt: 'select_account' }
-      }
+        queryParams: { prompt: 'select_account' },
+      },
     })
   }
 
@@ -145,240 +141,137 @@ export default function Page() {
 
   if (!user) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '100px' }}>
-        <h2>Login</h2>
-        <button onClick={loginWithGoogle}>Sign in with Google</button>
+      <div className="login-wrapper">
+        <div className="login-card">
+          <div className="login-logo-wrapper">
+            <div className="login-logo-tile">HA</div>
+            <div>
+              <div className="login-brand-label">Humor Project</div>
+              <h1 className="login-title">
+                Login to Admin Dashboard<br />
+                <span className="login-title-accent">for the Humor Project</span>
+              </h1>
+            </div>
+          </div>
+
+          <div className="login-divider" />
+
+          <p className="login-description">
+            Sign in with your Google account to access the admin panel.
+            Only authorized administrators can proceed.
+          </p>
+
+          <button onClick={loginWithGoogle} className="login-google-btn">
+            <svg width="18" height="18" viewBox="0 0 48 48">
+              <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/>
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
+              <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.5 35.5 26.9 36 24 36c-5.2 0-9.6-2.9-11.3-7.2l-6.5 5C9.6 39.6 16.3 44 24 44z"/>
+              <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.8 6l6.2 5.2C40.6 35.8 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/>
+            </svg>
+            Sign in with Google
+          </button>
+
+          <p className="login-footer-note">Access is restricted to verified admins only.</p>
+        </div>
       </div>
     )
   }
 
   if (isAdmin === null) {
-    return <p style={{ textAlign: 'center' }}>Loading...</p>
-  }
-
-  // ── Styles ──────────────────────────────────────────────
-  const bg = '#f4f6fb'
-  const card = '#ffffff'
-  const accent = '#4f8ef7'
-
-  const navStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 28px',
-    height: '62px',
-    backgroundColor: '#fff',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  }
-
-  const tabBtn = (tab: Tab): React.CSSProperties => ({
-    padding: '8px 20px',
-    borderRadius: '999px',
-    border: 'none',
-    cursor: 'pointer',
-    fontWeight: 600,
-    fontSize: '13px',
-    letterSpacing: '0.04em',
-    backgroundColor: activeTab === tab ? accent : 'transparent',
-    color: activeTab === tab ? '#fff' : '#888',
-    textTransform: 'uppercase',
-    transition: 'all 0.15s',
-  })
-
-  const contentStyle: React.CSSProperties = {
-    padding: '32px 28px',
-    backgroundColor: bg,
-    minHeight: 'calc(100vh - 62px)',
-  }
-
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: card,
-    borderRadius: '16px',
-    padding: '24px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-  }
-
-  const statCardStyle: React.CSSProperties = {
-    ...cardStyle,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    flex: 1,
-  }
-
-  const tableStyle: React.CSSProperties = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '13px',
-  }
-
-  const thStyle: React.CSSProperties = {
-    padding: '10px 14px',
-    color: '#aaa',
-    textAlign: 'left',
-    borderBottom: '1px solid #f0f0f0',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    fontSize: '11px',
-    letterSpacing: '0.05em',
-  }
-
-  const tdStyle: React.CSSProperties = {
-    padding: '12px 14px',
-    borderBottom: '1px solid #f7f7f7',
-    color: '#333',
-    verticalAlign: 'middle',
-  }
-
-  const paginationStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginTop: '16px',
-    justifyContent: 'flex-end',
-  }
-
-  const pageBtn = (disabled: boolean): React.CSSProperties => ({
-    padding: '6px 14px',
-    borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-    backgroundColor: disabled ? '#f9f9f9' : '#fff',
-    color: disabled ? '#ccc' : '#333',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: '15px',
-    boxShadow: disabled ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-  })
-
-  const signOutBtn: React.CSSProperties = {
-    padding: '8px 18px',
-    borderRadius: '999px',
-    border: '1px solid #e0e0e0',
-    backgroundColor: '#fff',
-    color: '#333',
-    cursor: 'pointer',
-    fontWeight: 600,
-    fontSize: '13px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    return <p className="loading">Loading...</p>
   }
 
   const initials = user.email?.slice(0, 1).toUpperCase()
 
   return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+    <div className="wrapper">
       {/* NAVBAR */}
-      <nav style={navStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            backgroundColor: accent, display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: '14px', color: '#fff'
-          }}>HA</div>
+      <nav className="nav">
+        <div className="nav-left">
+          <div className="nav-logo">HA</div>
           <div>
-            <div style={{ fontSize: '10px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Humor Project</div>
-            <div style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>Admin</div>
+            <div className="nav-brand-label">Humor Project</div>
+            <div className="nav-brand-name">Admin</div>
           </div>
         </div>
 
         {isAdmin && (
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div className="nav-tabs">
             {(['dashboard', 'profiles', 'images', 'captions'] as Tab[]).map((tab) => (
-              <button key={tab} style={tabBtn(tab)} onClick={() => setActiveTab(tab)}>
+              <button
+                key={tab}
+                className={`tab-btn${activeTab === tab ? ' active' : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
                 {tab}
               </button>
             ))}
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '34px', height: '34px', borderRadius: '50%',
-            backgroundColor: '#e74c3c', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 700, fontSize: '14px',
-          }}>{initials}</div>
-          <div style={{ fontSize: '13px', lineHeight: '1.3' }}>
-            <div style={{ fontWeight: 600, color: '#111' }}>{user.user_metadata?.full_name ?? 'User'}</div>
-            <div style={{ color: '#aaa', fontSize: '11px' }}>{user.email}</div>
+        <div className="nav-right">
+          <div className="nav-avatar">{initials}</div>
+          <div className="nav-user-info">
+            <div className="nav-user-name">{user.user_metadata?.full_name ?? 'User'}</div>
+            <div className="nav-user-email">{user.email}</div>
           </div>
-          <button style={signOutBtn} onClick={logout}>Sign Out</button>
+          <button className="sign-out-btn" onClick={logout}>Sign Out</button>
         </div>
       </nav>
 
       {/* CONTENT */}
-      <div style={contentStyle}>
+      <div className="content">
         {!isAdmin ? (
-          <p style={{ color: 'red' }}>You do not have permission to view this content.</p>
+          <p className="no-permission">You do not have permission to view this content.</p>
         ) : (
           <>
             {/* DASHBOARD TAB */}
             {activeTab === 'dashboard' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <h2 style={{ margin: 0, color: '#111' }}>Dashboard</h2>
+              <div className="dashboard">
+                <h2 className="dashboard-title">Dashboard</h2>
 
-                {/* Stat Cards */}
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <div style={statCardStyle}>
-                    <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Average Likes / Caption</div>
-                    <div style={{ fontSize: '36px', fontWeight: 800, color: '#111' }}>
-                      {avgLikes !== null ? avgLikes.toLocaleString() : '—'}
+                <div className="stat-cards-row">
+                  <div className="stat-card">
+                    <div className="stat-label">Average Likes / Caption</div>
+                    <div className="stat-value">
+                      {avgLikes !== null ? avgLikes.toLocaleString() : '\u2014'}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#aaa' }}>Across all captions</div>
+                    <div className="stat-sub">Across all captions</div>
                   </div>
-
-                  <div style={statCardStyle}>
-                    <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Top Caption Likes</div>
-                    <div style={{ fontSize: '36px', fontWeight: 800, color: accent }}>
-                      {topCaption ? topCaption.like_count?.toLocaleString() : '—'}
+                  <div className="stat-card">
+                    <div className="stat-label">Top Caption Likes</div>
+                    <div className="stat-value-accent">
+                      {topCaption ? topCaption.like_count?.toLocaleString() : '\u2014'}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#aaa' }}>Most liked caption</div>
+                    <div className="stat-sub">Most liked caption</div>
                   </div>
                 </div>
 
-                {/* Most Liked Caption + Image Pair */}
                 {topCaption && (
-                  <div style={cardStyle}>
-                    <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>
-                      🏆 Most Liked Image + Caption Pair
+                  <div className="card">
+                    <div className="top-caption-header">
+                      Most Liked Image + Caption Pair
                     </div>
-                    <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+                    <div className="top-caption-body">
                       {topCaption.images?.url && (
-                        <img
-                          src={topCaption.images.url}
-                          alt=""
-                          style={{ width: '180px', height: '140px', objectFit: 'cover', borderRadius: '12px' }}
-                        />
+                        <img src={topCaption.images.url} alt="" className="top-caption-img" />
                       )}
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div className="top-caption-details">
                         <div>
-                          <div style={{ fontSize: '11px', color: '#aaa', textTransform: 'uppercase', marginBottom: '4px' }}>Caption</div>
-                          <div style={{ fontSize: '15px', fontWeight: 600, color: '#111' }}>{topCaption.content}</div>
+                          <div className="top-caption-field-label">Caption</div>
+                          <div className="top-caption-content">{topCaption.content}</div>
                         </div>
                         {topCaption.images?.image_description && (
                           <div>
-                            <div style={{ fontSize: '11px', color: '#aaa', textTransform: 'uppercase', marginBottom: '4px' }}>Image Description</div>
-                            <div style={{ fontSize: '13px', color: '#555' }}>{topCaption.images.image_description}</div>
+                            <div className="top-caption-field-label">Image Description</div>
+                            <div className="top-caption-desc">{topCaption.images.image_description}</div>
                           </div>
                         )}
-                        <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
-                          <span style={{
-                            padding: '4px 12px', borderRadius: '999px',
-                            backgroundColor: topCaption.is_public ? '#e8f5e9' : '#fce4ec',
-                            color: topCaption.is_public ? '#2e7d32' : '#c62828',
-                            fontSize: '12px', fontWeight: 600
-                          }}>
-                            {topCaption.is_public ? '🌐 Public' : '🔒 Private'}
+                        <div className="top-caption-badges">
+                          <span className={topCaption.is_public ? 'badge-public' : 'badge-private'}>
+                            {topCaption.is_public ? 'Public' : 'Private'}
                           </span>
-                          <span style={{
-                            padding: '4px 12px', borderRadius: '999px',
-                            backgroundColor: '#e3f2fd', color: accent,
-                            fontSize: '12px', fontWeight: 600
-                          }}>
-                            ❤️ {topCaption.like_count} likes
-                          </span>
+                          <span className="badge-likes">{topCaption.like_count} likes</span>
                         </div>
                       </div>
                     </div>
@@ -389,122 +282,118 @@ export default function Page() {
 
             {/* PROFILES TAB */}
             {activeTab === 'profiles' && (
-              <div style={cardStyle}>
-                <h2 style={{ margin: '0 0 16px', color: '#111' }}>Profiles</h2>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      {['ID', 'First Name', 'Last Name', 'Email', 'Superadmin', 'In Study', 'Matrix Admin', 'Created', 'Modified'].map(h => (
-                        <th key={h} style={thStyle}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {profiles.map((profile) => (
-                      <tr key={profile.id}>
-                        <td style={tdStyle}>{profile.id}</td>
-                        <td style={tdStyle}>{profile.first_name}</td>
-                        <td style={tdStyle}>{profile.last_name}</td>
-                        <td style={tdStyle}>{profile.email}</td>
-                        <td style={tdStyle}>{profile.is_superadmin ? '✅' : '❌'}</td>
-                        <td style={tdStyle}>{profile.is_in_study ? '✅' : '❌'}</td>
-                        <td style={tdStyle}>{profile.is_matrix_admin ? '✅' : '❌'}</td>
-                        <td style={tdStyle}>{new Date(profile.created_datetime_utc).toLocaleString()}</td>
-                        <td style={tdStyle}>{new Date(profile.modified_datetime_utc).toLocaleString()}</td>
+              <div className="card">
+                <h2 className="section-title">Profiles</h2>
+                <div className="table-wrapper">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        {['ID', 'First Name', 'Last Name', 'Email', 'Superadmin', 'In Study', 'Matrix Admin', 'Created', 'Modified'].map(h => (
+                          <th key={h} className="th">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div style={paginationStyle}>
-                  <button style={pageBtn(profilePage === 1)} disabled={profilePage === 1} onClick={() => setProfilePage(p => Math.max(p - 1, 1))}>⬅️</button>
-                  <span style={{ color: '#888', fontSize: '13px' }}>Page {profilePage}</span>
-                  <button style={pageBtn(profiles.length < ITEMS_PER_PAGE)} disabled={profiles.length < ITEMS_PER_PAGE} onClick={() => setProfilePage(p => p + 1)}>➡️</button>
+                    </thead>
+                    <tbody>
+                      {profiles.map((profile) => (
+                        <tr key={profile.id}>
+                          <td className="td">{profile.id}</td>
+                          <td className="td">{profile.first_name}</td>
+                          <td className="td">{profile.last_name}</td>
+                          <td className="td">{profile.email}</td>
+                          <td className="td">{profile.is_superadmin ? 'Yes' : 'No'}</td>
+                          <td className="td">{profile.is_in_study ? 'Yes' : 'No'}</td>
+                          <td className="td">{profile.is_matrix_admin ? 'Yes' : 'No'}</td>
+                          <td className="td">{new Date(profile.created_datetime_utc).toLocaleString()}</td>
+                          <td className="td">{new Date(profile.modified_datetime_utc).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="pagination">
+                  <button className="page-btn" disabled={profilePage === 1} onClick={() => setProfilePage(p => Math.max(p - 1, 1))}>&#8592;</button>
+                  <span className="page-label">Page {profilePage}</span>
+                  <button className="page-btn" disabled={profiles.length < ITEMS_PER_PAGE} onClick={() => setProfilePage(p => p + 1)}>&#8594;</button>
                 </div>
               </div>
             )}
 
             {/* IMAGES TAB */}
             {activeTab === 'images' && (
-              <div style={cardStyle}>
-                <h2 style={{ margin: '0 0 16px', color: '#111' }}>Images</h2>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      {['ID', 'Preview', 'URL', 'Actions'].map(h => (
-                        <th key={h} style={thStyle}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {images.map((img) => (
-                      <tr key={img.id}>
-                        <td style={tdStyle}>{img.id}</td>
-                        <td style={tdStyle}><img src={img.url} alt="" width={80} style={{ borderRadius: '8px' }} /></td>
-                        <td style={tdStyle}>{img.url}</td>
-                        <td style={tdStyle}>
-                          <button
-                            onClick={() => deleteImage(img.id)}
-                            style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid #fca5a5', backgroundColor: '#fff5f5', color: '#dc2626', cursor: 'pointer', marginRight: '6px' }}
-                          >Delete</button>
-                          <button
-                            onClick={() => updateImage(img.id, prompt('New URL?') || img.url)}
-                            style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
-                          >Edit</button>
-                        </td>
+              <div className="card">
+                <h2 className="section-title">Images</h2>
+                <div className="table-wrapper">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        {['ID', 'Preview', 'URL', 'Actions'].map(h => (
+                          <th key={h} className="th">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div style={paginationStyle}>
-                  <button style={pageBtn(imagePage === 1)} disabled={imagePage === 1} onClick={() => setImagePage(p => Math.max(p - 1, 1))}>⬅️</button>
-                  <span style={{ color: '#888', fontSize: '13px' }}>Page {imagePage}</span>
-                  <button style={pageBtn(images.length < ITEMS_PER_PAGE)} disabled={images.length < ITEMS_PER_PAGE} onClick={() => setImagePage(p => p + 1)}>➡️</button>
+                    </thead>
+                    <tbody>
+                      {images.map((img) => (
+                        <tr key={img.id}>
+                          <td className="td">{img.id}</td>
+                          <td className="td"><img src={img.url} alt="" width={80} className="table-img" /></td>
+                          <td className="td">{img.url}</td>
+                          <td className="td">
+                            <button className="btn-delete" onClick={() => deleteImage(img.id)}>Delete</button>
+                            <button className="btn-edit" onClick={() => updateImage(img.id, prompt('New URL?') || img.url)}>Edit</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="pagination">
+                  <button className="page-btn" disabled={imagePage === 1} onClick={() => setImagePage(p => Math.max(p - 1, 1))}>&#8592;</button>
+                  <span className="page-label">Page {imagePage}</span>
+                  <button className="page-btn" disabled={images.length < ITEMS_PER_PAGE} onClick={() => setImagePage(p => p + 1)}>&#8594;</button>
                 </div>
               </div>
             )}
 
             {/* CAPTIONS TAB */}
             {activeTab === 'captions' && (
-              <div style={cardStyle}>
-                <h2 style={{ margin: '0 0 16px', color: '#111' }}>Captions</h2>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      {['ID', 'Image', 'Image Description', 'Caption', 'Visibility', 'Likes', 'Created'].map(h => (
-                        <th key={h} style={thStyle}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {captions.map((caption) => (
-                      <tr key={caption.id}>
-                        <td style={tdStyle}>{caption.id}</td>
-                        <td style={tdStyle}>
-                          {caption.images?.url
-                            ? <img src={caption.images.url} alt="" width={80} style={{ borderRadius: '8px' }} />
-                            : '—'}
-                        </td>
-                        <td style={{ ...tdStyle, maxWidth: '200px' }}>{caption.images?.image_description ?? '—'}</td>
-                        <td style={{ ...tdStyle, maxWidth: '200px' }}>{caption.content}</td>
-                        <td style={tdStyle}>
-                          <span style={{
-                            padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,
-                            backgroundColor: caption.is_public ? '#e8f5e9' : '#fce4ec',
-                            color: caption.is_public ? '#2e7d32' : '#c62828',
-                          }}>
-                            {caption.is_public ? '🌐 Public' : '🔒 Private'}
-                          </span>
-                        </td>
-                        <td style={tdStyle}>{caption.like_count}</td>
-                        <td style={tdStyle}>{new Date(caption.created_datetime_utc).toLocaleString()}</td>
+              <div className="card">
+                <h2 className="section-title">Captions</h2>
+                <div className="table-wrapper">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        {['ID', 'Image', 'Image Description', 'Caption', 'Visibility', 'Likes', 'Created'].map(h => (
+                          <th key={h} className="th">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div style={paginationStyle}>
-                  <button style={pageBtn(captionPage === 1)} disabled={captionPage === 1} onClick={() => setCaptionPage(p => Math.max(p - 1, 1))}>⬅️</button>
-                  <span style={{ color: '#888', fontSize: '13px' }}>Page {captionPage}</span>
-                  <button style={pageBtn(captions.length < ITEMS_PER_PAGE)} disabled={captions.length < ITEMS_PER_PAGE} onClick={() => setCaptionPage(p => p + 1)}>➡️</button>
+                    </thead>
+                    <tbody>
+                      {captions.map((caption) => (
+                        <tr key={caption.id}>
+                          <td className="td">{caption.id}</td>
+                          <td className="td">
+                            {caption.images?.url
+                              ? <img src={caption.images.url} alt="" width={80} className="table-img" />
+                              : '\u2014'}
+                          </td>
+                          <td className="td-truncate">{caption.images?.image_description ?? '\u2014'}</td>
+                          <td className="td-truncate">{caption.content}</td>
+                          <td className="td">
+                            <span className={caption.is_public ? 'visibility-public' : 'visibility-private'}>
+                              {caption.is_public ? 'Public' : 'Private'}
+                            </span>
+                          </td>
+                          <td className="td">{caption.like_count}</td>
+                          <td className="td">{new Date(caption.created_datetime_utc).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="pagination">
+                  <button className="page-btn" disabled={captionPage === 1} onClick={() => setCaptionPage(p => Math.max(p - 1, 1))}>&#8592;</button>
+                  <span className="page-label">Page {captionPage}</span>
+                  <button className="page-btn" disabled={captions.length < ITEMS_PER_PAGE} onClick={() => setCaptionPage(p => p + 1)}>&#8594;</button>
                 </div>
               </div>
             )}
